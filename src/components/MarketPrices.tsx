@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { useMarketPrices } from "@/hooks/useFirestore";
 
 interface MarketPrice {
   crop: string;
@@ -21,8 +22,10 @@ const MarketPrices = () => {
   const [selectedCrop, setSelectedCrop] = useState<string>("tomato");
   const [selectedLocation, setSelectedLocation] = useState<string>("bangalore");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const { prices: marketData, loading } = useMarketPrices();
   
-  const [marketData] = useState<MarketPrice[]>([
+  // Fallback data for demo
+  const fallbackData: MarketPrice[] = [
     {
       crop: "Tomato",
       market: "APMC Yeshwanthpur",
@@ -63,12 +66,13 @@ const MarketPrices = () => {
       lastUpdated: "4 hours ago",
       recommendation: "Stable prices - steady market"
     }
-  ]);
+  ];
 
   const crops = ["Tomato", "Onion", "Potato", "Brinjal", "Cabbage", "Carrot"];
   const locations = ["Bangalore", "Mysore", "Hubli", "Mandya", "Hassan"];
 
-  const filteredData = marketData.filter(item => 
+  const dataToUse = marketData.length > 0 ? marketData : fallbackData;
+  const filteredData = dataToUse.filter(item => 
     item.crop.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.market.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -190,7 +194,7 @@ const MarketPrices = () => {
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
-                    Updated {item.lastUpdated}
+                    Updated {new Date(item.lastUpdated.seconds * 1000).toLocaleString()}
                   </div>
                   <Button variant="ghost" size="sm">
                     View Trends

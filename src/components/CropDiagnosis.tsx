@@ -4,11 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useCropDiagnoses } from "@/hooks/useFirestore";
+import { useToast } from "@/hooks/use-toast";
 
 const CropDiagnosis = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [diagnosis, setDiagnosis] = useState<any>(null);
+  const { diagnoses, addDiagnosis } = useCropDiagnoses();
+  const { toast } = useToast();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -25,32 +29,64 @@ const CropDiagnosis = () => {
     if (!selectedImage) return;
     
     setIsAnalyzing(true);
-    // Simulate AI analysis
-    setTimeout(() => {
-      setDiagnosis({
-        disease: "Early Blight (Alternaria solani)",
-        confidence: 92,
-        severity: "Moderate",
-        treatment: [
-          "Remove affected leaves immediately",
-          "Apply copper-based fungicide spray",
-          "Improve air circulation around plants",
-          "Avoid overhead watering"
-        ],
-        prevention: [
-          "Use disease-resistant tomato varieties",
-          "Practice crop rotation",
-          "Maintain proper plant spacing",
-          "Apply mulch to prevent soil splash"
-        ],
-        localTreatments: [
-          "Neem oil spray (available at local stores)",
-          "Copper sulfate solution",
-          "Baking soda spray (1 tsp per liter water)"
-        ]
-      });
+    try {
+      // Simulate AI analysis
+      setTimeout(async () => {
+        const diagnosisResult = {
+          disease: "Early Blight (Alternaria solani)",
+          confidence: 92,
+          severity: "Moderate",
+          treatment: [
+            "Remove affected leaves immediately",
+            "Apply copper-based fungicide spray",
+            "Improve air circulation around plants",
+            "Avoid overhead watering"
+          ],
+          prevention: [
+            "Use disease-resistant tomato varieties",
+            "Practice crop rotation",
+            "Maintain proper plant spacing",
+            "Apply mulch to prevent soil splash"
+          ],
+          localTreatments: [
+            "Neem oil spray (available at local stores)",
+            "Copper sulfate solution",
+            "Baking soda spray (1 tsp per liter water)"
+          ]
+        };
+        
+        setDiagnosis(diagnosisResult);
+        
+        // Save to Firebase
+        try {
+          await addDiagnosis({
+            imageUrl: selectedImage,
+            ...diagnosisResult
+          });
+          
+          toast({
+            title: "Diagnosis Saved",
+            description: "Your crop diagnosis has been saved to your history."
+          });
+        } catch (error) {
+          console.error('Failed to save diagnosis:', error);
+          toast({
+            title: "Save Failed",
+            description: "Could not save diagnosis to history.",
+            variant: "destructive"
+          });
+        }
+        
+        setIsAnalyzing(false);
+      }, 3000);
+    } catch (error) {
       setIsAnalyzing(false);
-    }, 3000);
+      toast({
+        title: "Analysis Failed",
+        description: "Could not analyze the image. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

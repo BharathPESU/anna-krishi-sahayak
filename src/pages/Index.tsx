@@ -3,18 +3,21 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import Dashboard from "@/components/Dashboard";
 import CropDiagnosis from "@/components/CropDiagnosis";
 import MarketPrices from "@/components/MarketPrices";
 import GovernmentSchemes from "@/components/GovernmentSchemes";
 import VoiceAssistant from "@/components/VoiceAssistant";
 
-type ActiveSection = 'home' | 'crop-diagnosis' | 'market-prices' | 'government-schemes' | 'voice-assistant';
+type ActiveSection = 'home' | 'dashboard' | 'crop-diagnosis' | 'market-prices' | 'government-schemes' | 'voice-assistant';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState<ActiveSection>('home');
 
   const renderActiveSection = () => {
     switch (activeSection) {
+      case 'dashboard':
+        return <Dashboard />;
       case 'crop-diagnosis':
         return <CropDiagnosis />;
       case 'market-prices':
